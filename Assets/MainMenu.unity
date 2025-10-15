@@ -119,7 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+<<<<<<< HEAD
 --- !u!1 &344202556
+=======
+--- !u!1 &918444069
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,6 +131,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+<<<<<<< HEAD
   - component: {fileID: 344202557}
   - component: {fileID: 344202560}
   - component: {fileID: 344202559}
@@ -845,6 +850,11 @@ GameObject:
   - component: {fileID: 1967362431}
   - component: {fileID: 1967362430}
   - component: {fileID: 1967362429}
+=======
+  - component: {fileID: 918444072}
+  - component: {fileID: 918444071}
+  - component: {fileID: 918444070}
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -852,21 +862,35 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+<<<<<<< HEAD
 --- !u!81 &1967362429
+=======
+--- !u!81 &918444070
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD
   m_GameObject: {fileID: 1967362428}
   m_Enabled: 1
 --- !u!20 &1967362430
+=======
+  m_GameObject: {fileID: 918444069}
+  m_Enabled: 1
+--- !u!20 &918444071
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD
   m_GameObject: {fileID: 1967362428}
+=======
+  m_GameObject: {fileID: 918444069}
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
@@ -911,13 +935,21 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+<<<<<<< HEAD
 --- !u!4 &1967362431
+=======
+--- !u!4 &918444072
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD
   m_GameObject: {fileID: 1967362428}
+=======
+  m_GameObject: {fileID: 918444069}
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -930,6 +962,10 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+<<<<<<< HEAD
   - {fileID: 1967362431}
   - {fileID: 1821145788}
   - {fileID: 1890291082}
+=======
+  - {fileID: 918444072}
+>>>>>>> 6633379217d07674438fe21c9d727e200d1852b3
