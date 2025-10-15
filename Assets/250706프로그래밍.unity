@@ -1480,6 +1480,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   baseBatch: 1
   maxBatch: 6
+  maxAlive: 20
+  initialDelay: 0
 --- !u!114 &1017187341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1493,11 +1495,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   survivalDuration: 60
-  timerText: {fileID: 1915366606}
+  timerTextUGUI: {fileID: 0}
+  timerTextTMP: {fileID: 1915366606}
   spawner: {fileID: 1017187340}
   player: {fileID: 813899150}
   rewardPanel: {fileID: 1458679356}
-  rewardUI: {fileID: 0}
+  rewardUI: {fileID: 1458679357}
 --- !u!4 &1017187342
 Transform:
   m_ObjectHideFlags: 0
