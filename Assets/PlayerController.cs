@@ -5,11 +5,14 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 7f;
     public int maxHP = 10;
     public int ballDamageBonus = 0;
+    public float kickRange = 1.2f;
+    public float kickPower = 15f;
+    public LayerMask ballLayer;
 
     private int currentHP;
     private Rigidbody2D rb;
     private Vector2 movement;
-
+    private Vector2 lastLookDir = Vector2.up;
     private bool canMove = true; // 이동 가능 여부를 저장하는 변수
 
     void Start()
@@ -28,6 +31,36 @@ public class PlayerController : MonoBehaviour
         else
         {
             movement = Vector2.zero; // 이동 불가 시 움직임 0
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            TryKickBall();
+        }
+
+        if(movement != Vector2.zero)
+        {
+            lastLookDir = movement.normalized;
+        }
+    }
+
+    void TryKickBall()
+    {
+        // 플레이어가 보는 방향
+        Vector2 dir = lastLookDir;
+        
+       
+
+        // 앞쪽에 공이 있는지 감지
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, kickRange, ballLayer);
+
+        if (hit.collider != null)
+        {
+            KickableObject ball = hit.collider.GetComponent<KickableObject>();
+            if (ball != null)
+            {
+                ball.Kick(dir, kickPower);
+            }
         }
     }
 

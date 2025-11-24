@@ -253,7 +253,8 @@ GameObject:
   - component: {fileID: 477113672}
   - component: {fileID: 477113671}
   - component: {fileID: 477113675}
-  m_Layer: 0
+  - component: {fileID: 477113676}
+  m_Layer: 6
   m_Name: Ball
   m_TagString: Kickable
   m_Icon: {fileID: 0}
@@ -309,7 +310,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 2.5
+  m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -405,7 +406,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2ff466daf82205408d37ef2d2a05c85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kickForce: 10
+  defaultKickPower: 35
+  bounceFactor: 0.8
+--- !u!58 &477113676
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 477113670}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1221,7 +1259,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 0.1
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -1286,6 +1324,11 @@ MonoBehaviour:
   moveSpeed: 7
   maxHP: 10
   ballDamageBonus: 0
+  kickRange: 1.2
+  kickPower: 35
+  ballLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &969145120
 GameObject:
   m_ObjectHideFlags: 0
@@ -1784,11 +1827,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15562f4e0f481d84d9745d48ddc51183, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomPrefab: {fileID: 1620473766}
-  roomSize: 20
-  cameraMoveTime: 0.35
-  currentRoomPos: {x: 0, y: 0}
-  isTransitioning: 0
 --- !u!4 &1317437098
 Transform:
   m_ObjectHideFlags: 0
@@ -1898,11 +1936,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &1620473766 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3651824201607085184, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
-  m_PrefabInstance: {fileID: 3887331267634409862}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1780568661
 GameObject:
   m_ObjectHideFlags: 0
@@ -2058,7 +2091,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 211}
+  m_AnchoredPosition: {x: 11.1, y: 96}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1915366605
@@ -2334,6 +2367,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 20273060867979547, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
+      propertyPath: m_TagString
+      value: Wall
+      objectReference: {fileID: 0}
     - target: {fileID: 402423530777201903, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -2398,6 +2435,10 @@ PrefabInstance:
       propertyPath: m_SpriteTilingProperty.adaptiveTilingThreshold
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1670111402618876908, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
+      propertyPath: m_TagString
+      value: Wall
+      objectReference: {fileID: 0}
     - target: {fileID: 2124869353702708124, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.5
@@ -2405,6 +2446,14 @@ PrefabInstance:
     - target: {fileID: 2124869353702708124, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_LocalPosition.y
       value: -13
+      objectReference: {fileID: 0}
+    - target: {fileID: 2484156287038752370, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
+      propertyPath: m_TagString
+      value: Wall
+      objectReference: {fileID: 0}
+    - target: {fileID: 2549017179368277433, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
+      propertyPath: m_TagString
+      value: Wall
       objectReference: {fileID: 0}
     - target: {fileID: 2623050650077638696, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_FlipX
@@ -2497,6 +2546,10 @@ PrefabInstance:
     - target: {fileID: 4472442268896672006, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_LocalPosition.y
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 4800687935246471569, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
+      propertyPath: m_TagString
+      value: Wall
       objectReference: {fileID: 0}
     - target: {fileID: 5452012981230589477, guid: e84ba19fb8eb5be41ad31a5ad41aacd3, type: 3}
       propertyPath: m_SpriteTilingProperty.pivot.x
