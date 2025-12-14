@@ -16,10 +16,12 @@ public class MonsterController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
-    // ✅ 안전장치
     private bool _dying = false;
     private Coroutine _flashCo;
     private float lastAttackTime = -999f;
+
+    // 넉백 중인지 체크하는 변수
+    private bool isKnockedBack = false;
 
     void OnEnable() { SurvivalGameManager.Instance?.RegisterEnemy(this); }
     void OnDisable() { SurvivalGameManager.Instance?.UnregisterEnemy(this); }
@@ -45,10 +47,11 @@ public class MonsterController : MonoBehaviour
     {
         if (_dying || player == null) return;
 
-        // 항상 추적
+        // 넉백 중이면 이동 로직 건너뜀 (밀려나는 물리 힘을 방해하지 않기 위해)
+        if (isKnockedBack) return;
+
         MoveTowardPlayer();
 
-        // 사거리면 공격
         float dist = Vector2.Distance(transform.position, player.position);
         if (dist <= attackRange) AttackPlayer();
     }
@@ -83,13 +86,33 @@ public class MonsterController : MonoBehaviour
         if (currentHP <= 0) Die();
     }
 
+    // 추가된 넉백 함수
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (_dying) return;
+        StartCoroutine(KnockbackRoutine(direction, force));
+    }
+
+    IEnumerator KnockbackRoutine(Vector2 direction, float force)
+    {
+        isKnockedBack = true;
+        // 순간적인 힘 가하기 (Impulse)
+        rb.AddForce(direction * force, ForceMode2D.Impulse);
+
+        // 0.2초 정도 밀려나는 시간 부여
+        yield return new WaitForSeconds(0.2f);
+
+        // 넉백 끝, 속도 초기화 후 다시 추적 시작
+        rb.linearVelocity = Vector2.zero;
+        isKnockedBack = false;
+    }
+
     IEnumerator FlashRed()
     {
         if (spriteRenderer == null) yield break;
-        spriteRenderer.color = Color.red;
-        // 웨이브 종료로 일시정지되어도 복구되게 Realtime 사용
-        yield return new WaitForSecondsRealtime(0.15f);
-        if (spriteRenderer != null) spriteRenderer.color = originalColor;
+        spriteRenderer.color = Color.white; // 맞으면 하얗게 번쩍이는게 타격감이 더 좋음
+        yield return new WaitForSecondsRealtime(0.1f);
+        spriteRenderer.color = originalColor;
     }
 
     void Die()
@@ -97,17 +120,13 @@ public class MonsterController : MonoBehaviour
         if (_dying) return;
         _dying = true;
 
-        SurvivalGameManager.Instance?.UnregisterEnemy(this);
+        // 사망 파티클 등을 여기서 생성하면 좋음
 
+        SurvivalGameManager.Instance?.UnregisterEnemy(this);
         if (_flashCo != null) StopCoroutine(_flashCo);
         Destroy(gameObject);
     }
 
-    // ⚠️ KickableObject에서 트리거 데미지를 주고 있으면
-    // 아래 충돌 데미지는 지우세요(중복 방지).
-    void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.gameObject.CompareTag("Kickable"))
-            TakeDamage(1);
-    }
+    // 중복 데미지 방지: KickableObject에서 직접 처리하므로 여기 충돌 처리는 제거하거나 비워둠
+    void OnCollisionEnter2D(Collision2D col) { }
 }

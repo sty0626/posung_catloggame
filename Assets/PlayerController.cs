@@ -5,15 +5,18 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 7f;
     public int maxHP = 10;
     public int ballDamageBonus = 0;
-    public float kickRange = 1.2f;
-    public float kickPower = 15f;
+    public float kickRange = 1.5f; // 사거리 살짝 증가
+    public float kickPower = 20f;  // 파워 증가
+    public float kickCooldown = 0.5f; // 쿨타임 추가
     public LayerMask ballLayer;
 
     private int currentHP;
     private Rigidbody2D rb;
     private Vector2 movement;
     private Vector2 lastLookDir = Vector2.up;
-    private bool canMove = true; // 이동 가능 여부를 저장하는 변수
+    private bool canMove = true;
+
+    private float lastKickTime;
 
     void Start()
     {
@@ -30,15 +33,16 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            movement = Vector2.zero; // 이동 불가 시 움직임 0
+            movement = Vector2.zero;
         }
 
-        if (Input.GetKeyDown(KeyCode.F))
+        // 쿨타임 체크
+        if (Input.GetKeyDown(KeyCode.F) && Time.time >= lastKickTime + kickCooldown)
         {
             TryKickBall();
         }
 
-        if(movement != Vector2.zero)
+        if (movement != Vector2.zero)
         {
             lastLookDir = movement.normalized;
         }
@@ -46,12 +50,11 @@ public class PlayerController : MonoBehaviour
 
     void TryKickBall()
     {
-        // 플레이어가 보는 방향
         Vector2 dir = lastLookDir;
-        
-       
 
-        // 앞쪽에 공이 있는지 감지
+        // 레이캐스트 디버그 시각화 (Scene 뷰에서 보임)
+        Debug.DrawRay(transform.position, dir * kickRange, Color.red, 0.5f);
+
         RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, kickRange, ballLayer);
 
         if (hit.collider != null)
@@ -59,7 +62,10 @@ public class PlayerController : MonoBehaviour
             KickableObject ball = hit.collider.GetComponent<KickableObject>();
             if (ball != null)
             {
+                lastKickTime = Time.time; // 쿨타임 갱신
                 ball.Kick(dir, kickPower);
+
+                // 킥하는 순간 플레이어도 반동으로 살짝 뒤로 밀리거나 멈칫하면 느낌이 좋음 (선택사항)
             }
         }
     }
@@ -67,7 +73,6 @@ public class PlayerController : MonoBehaviour
     public void Heal(int amount)
     {
         currentHP = Mathf.Clamp(currentHP + amount, 0, maxHP);
-        // 필요하면 HP UI 갱신 코드 추가
     }
 
     void FixedUpdate()
@@ -78,7 +83,11 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(int amount)
     {
         currentHP -= amount;
-        Debug.Log("플레이어가 공격당함! 남은 체력: " + currentHP);
+
+        // 플레이어 피격 시에도 화면 흔들림
+        CameraShake.Instance?.Shake(0.2f, 0.3f);
+
+        Debug.Log("플레이어 남은 체력: " + currentHP);
 
         if (currentHP <= 0)
         {
@@ -89,10 +98,9 @@ public class PlayerController : MonoBehaviour
     void Die()
     {
         Debug.Log("플레이어 사망");
-        SetCanMove(false); // 사망하면 이동 불가
+        SetCanMove(false);
     }
 
-    // 이동 가능 상태 설정 함수
     public void SetCanMove(bool value)
     {
         canMove = value;
