@@ -305,6 +305,7 @@ MonoBehaviour:
   m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
+  m_Version: 2
   m_TaaSettings:
     m_Quality: 3
     m_FrameInfluence: 0.1
@@ -312,7 +313,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
-  m_Version: 2
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -989,7 +989,6 @@ GameObject:
   m_IsActive: 1
 --- !u!212 &813899145
 SpriteRenderer:
-  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1008,8 +1007,6 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1031,11 +1028,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 0.4707542, b: 0.06132078, a: 1}
   m_FlipX: 0
@@ -1045,6 +1040,7 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!4 &813899146
 Transform:
@@ -1139,12 +1135,8 @@ MonoBehaviour:
   moveSpeed: 7
   maxHP: 10
   ballDamageBonus: 0
-  kickRange: 1.2
-  kickPower: 35
+  ballPrefab: {fileID: 1845324907}
   kickCooldown: 0.5
-  ballLayer:
-    serializedVersion: 2
-    m_Bits: 64
 --- !u!1 &969145120
 GameObject:
   m_ObjectHideFlags: 0
@@ -1180,7 +1172,6 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!483693784 &969145122
 TilemapRenderer:
-  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1199,8 +1190,6 @@ TilemapRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1222,11 +1211,9 @@ TilemapRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
@@ -1234,6 +1221,7 @@ TilemapRenderer:
   m_SortOrder: 0
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
+  m_MaskInteraction: 0
 --- !u!1839735485 &969145123
 Tilemap:
   m_ObjectHideFlags: 0
@@ -1645,9 +1633,52 @@ MonoBehaviour:
   m_GameObject: {fileID: 1317437096}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15562f4e0f481d84d9745d48ddc51183, type: 3}
+  m_Script: {fileID: 11500000, guid: c24852733703b844abf09f9e7442047c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyPrefabs: []
+  center: {x: 0, y: 0}
+  size: {x: 30, y: 18}
+  edgePadding: 1.5
+  baseInterval: 2.5
+  minInterval: 1
+  difficultyCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.45
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  baseBatch: 1
+  maxBatch: 2
+  maxAlive: 20
+  initialDelay: 0
 --- !u!4 &1317437098
 Transform:
   m_ObjectHideFlags: 0
@@ -1910,6 +1941,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1845324907 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 746177774562995071, guid: 41f2bddf5fcec6e4f9f55bf500c300e1, type: 3}
+  m_PrefabInstance: {fileID: 5063736631320328401}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1915366603
 GameObject:
   m_ObjectHideFlags: 0
