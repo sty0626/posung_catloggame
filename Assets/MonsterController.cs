@@ -1,8 +1,9 @@
-using System.Collections;
 using UnityEngine;
+using System.Collections;
 
 public class MonsterController : MonoBehaviour
 {
+    [Header("몬스터 스탯")]
     public float moveSpeed = 3f;
     public float attackRange = 1.2f;
     public int maxHP = 3;
@@ -20,9 +21,10 @@ public class MonsterController : MonoBehaviour
     private Coroutine _flashCo;
     private float lastAttackTime = -999f;
 
-    // 넉백 중인지 체크하는 변수
+    // 넉백 중인지 체크
     private bool isKnockedBack = false;
 
+    // 매니저 등록/해제
     void OnEnable() { SurvivalGameManager.Instance?.RegisterEnemy(this); }
     void OnDisable() { SurvivalGameManager.Instance?.UnregisterEnemy(this); }
     void OnDestroy() { SurvivalGameManager.Instance?.UnregisterEnemy(this); }
@@ -40,6 +42,8 @@ public class MonsterController : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // 원래 색깔 기억하기
         if (spriteRenderer) originalColor = spriteRenderer.color;
     }
 
@@ -47,7 +51,7 @@ public class MonsterController : MonoBehaviour
     {
         if (_dying || player == null) return;
 
-        // 넉백 중이면 이동 로직 건너뜀 (밀려나는 물리 힘을 방해하지 않기 위해)
+        // 넉백 중이면 이동 로직 건너뜀 (밀려나는 힘에 맡김)
         if (isKnockedBack) return;
 
         MoveTowardPlayer();
@@ -77,6 +81,7 @@ public class MonsterController : MonoBehaviour
 
         currentHP -= amount;
 
+        // ⭐ 피격 시 빨갛게 깜빡이기
         if (spriteRenderer != null)
         {
             if (_flashCo != null) StopCoroutine(_flashCo);
@@ -86,7 +91,7 @@ public class MonsterController : MonoBehaviour
         if (currentHP <= 0) Die();
     }
 
-    // 추가된 넉백 함수
+    // 넉백 함수
     public void ApplyKnockback(Vector2 direction, float force)
     {
         if (_dying) return;
@@ -96,23 +101,25 @@ public class MonsterController : MonoBehaviour
     IEnumerator KnockbackRoutine(Vector2 direction, float force)
     {
         isKnockedBack = true;
-        // 순간적인 힘 가하기 (Impulse)
+
+        // 순간적으로 밀어내기
         rb.AddForce(direction * force, ForceMode2D.Impulse);
 
-        // 0.2초 정도 밀려나는 시간 부여
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.2f); // 0.2초 동안 밀림
 
-        // 넉백 끝, 속도 초기화 후 다시 추적 시작
+        // 멈추고 다시 추적 시작
         rb.linearVelocity = Vector2.zero;
         isKnockedBack = false;
     }
 
+    // 빨간색 점멸 코루틴
     IEnumerator FlashRed()
     {
         if (spriteRenderer == null) yield break;
-        spriteRenderer.color = Color.white; // 맞으면 하얗게 번쩍이는게 타격감이 더 좋음
-        yield return new WaitForSecondsRealtime(0.1f);
-        spriteRenderer.color = originalColor;
+
+        spriteRenderer.color = Color.red; // 빨간색!
+        yield return new WaitForSeconds(0.1f);
+        spriteRenderer.color = originalColor; // 원상복구
     }
 
     void Die()
@@ -120,13 +127,8 @@ public class MonsterController : MonoBehaviour
         if (_dying) return;
         _dying = true;
 
-        // 사망 파티클 등을 여기서 생성하면 좋음
-
         SurvivalGameManager.Instance?.UnregisterEnemy(this);
         if (_flashCo != null) StopCoroutine(_flashCo);
         Destroy(gameObject);
     }
-
-    // 중복 데미지 방지: KickableObject에서 직접 처리하므로 여기 충돌 처리는 제거하거나 비워둠
-    void OnCollisionEnter2D(Collision2D col) { }
 }

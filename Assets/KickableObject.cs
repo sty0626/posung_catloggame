@@ -1,18 +1,19 @@
 using UnityEngine;
-using Unity.Cinemachine; // ⚠️ 에러나면 using Cinemachine;
+using Unity.Cinemachine;
 
 public class KickableObject : MonoBehaviour
 {
     [Header("발차기 설정")]
     public float defaultKickPower = 25f;
-    public float lifeTimeAfterKick = 5.0f;
 
-    [Header("타격감(Juice) 설정")]
+    [Header("타격감 설정")]
     public float wallShakeForce = 2f;
+    public float knockbackForce = 5f;
 
     private CinemachineImpulseSource impulseSource;
     private Rigidbody2D rb;
     private TrailRenderer trail;
+    private Collider2D myCollider;
 
     public bool IsKicked { get; private set; } = false;
     private int currentDamage = 1;
@@ -22,18 +23,13 @@ public class KickableObject : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         trail = GetComponent<TrailRenderer>();
         impulseSource = GetComponent<CinemachineImpulseSource>();
+        myCollider = GetComponent<Collider2D>();
 
-        // ⭐ 핵심 변경: 태어나자마자 꼬리는 꺼둡니다. (드리블 중엔 안 보이게)
-        if (trail != null)
-        {
-            trail.emitting = false;
-        }
+        if (trail != null) trail.emitting = false;
     }
 
     public void Kick(Vector2 direction, float power, int bonusDamage = 0)
     {
-        if (IsKicked) return;
-
         IsKicked = true;
         currentDamage = 1 + bonusDamage;
 
@@ -44,18 +40,30 @@ public class KickableObject : MonoBehaviour
 
         rb.linearVelocity = direction.normalized * power;
 
-        // ⭐ 핵심 변경: 찰 때 꼬리를 켭니다!
         if (trail != null)
         {
-            trail.Clear(); // 혹시 남아있던 잔상 지우기
-            trail.emitting = true; // 이제부터 꼬리 그리기 시작
+            trail.Clear();
+            trail.emitting = true;
         }
 
         if (impulseSource) impulseSource.GenerateImpulse(0.5f);
-
-        Destroy(gameObject, lifeTimeAfterKick);
     }
 
+    // ⭐ [이 함수가 없어서 에러가 났던 겁니다!]
+    // 플레이어가 공을 잡았을 때 호출되는 함수
+    public void OnCaught()
+    {
+        IsKicked = false;
+        if (GetComponent<Rigidbody2D>() != null)
+        {
+            GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+            GetComponent<Rigidbody2D>().angularVelocity = 0f;
+        }
+        if (GetComponent<TrailRenderer>() != null)
+        {
+            GetComponent<TrailRenderer>().emitting = false;
+        }
+    }
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Wall"))
@@ -65,12 +73,24 @@ public class KickableObject : MonoBehaviour
                 impulseSource.GenerateImpulse(wallShakeForce);
             }
         }
-        else if (collision.gameObject.CompareTag("Monster"))
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Monster"))
         {
-            var monster = collision.gameObject.GetComponent<MonsterController>();
+            var monster = other.GetComponent<MonsterController>();
             if (monster != null)
             {
                 monster.TakeDamage(currentDamage);
+
+                Vector2 pushDir = rb.linearVelocity.normalized;
+                if (pushDir == Vector2.zero)
+                {
+                    pushDir = (monster.transform.position - transform.position).normalized;
+                }
+                monster.ApplyKnockback(pushDir, knockbackForce);
+
                 if (impulseSource) impulseSource.GenerateImpulse(0.5f);
             }
         }
