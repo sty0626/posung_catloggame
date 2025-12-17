@@ -26,6 +26,10 @@ public class SurvivalGameManager : MonoBehaviour
     public float spawnInterval = 2f;
     public float spawnRadius = 10f;
 
+    // ★ [추가됨] 엘리트 몬스터 등장 확률 (0.2 = 20%)
+    [Range(0f, 1f)]
+    public float eliteSpawnChance = 0.2f;
+
     [Header("참조")]
     public PlayerController player;
     public GameObject rewardPanel;
@@ -126,11 +130,11 @@ public class SurvivalGameManager : MonoBehaviour
 
         while (isPlayingPhase)
         {
-            yield return new WaitForSecondsRealtime(spawnInterval); // 시간 멈춤 방지용 Realtime
+            yield return new WaitForSecondsRealtime(spawnInterval);
 
             try
             {
-                if (Time.timeScale == 0) continue; // 게임오버면 스킵
+                if (Time.timeScale == 0) continue;
                 if (player == null) continue;
 
                 SpawnOneMonster();
@@ -153,7 +157,23 @@ public class SurvivalGameManager : MonoBehaviour
             spawnPos.x = Mathf.Clamp(spawnPos.x, minMapLimit.x, maxMapLimit.x);
             spawnPos.y = Mathf.Clamp(spawnPos.y, minMapLimit.y, maxMapLimit.y);
 
-            Instantiate(monsterPrefab, spawnPos, Quaternion.identity);
+            // 1. 몬스터를 생성하고 변수(go)에 담습니다.
+            GameObject go = Instantiate(monsterPrefab, spawnPos, Quaternion.identity);
+
+            // 2. ★ [핵심] 몬스터 컨트롤러를 가져와서 확률적으로 엘리트로 만듭니다.
+            MonsterController mc = go.GetComponent<MonsterController>();
+            if (mc != null)
+            {
+                // 인스펙터의 eliteSpawnChance 확률(0.2)보다 낮으면 당첨!
+                if (Random.value < eliteSpawnChance)
+                {
+                    mc.MakeElite(); // "너는 이제 엘리트야!" 명령
+                    Debug.Log("⚡ 엘리트 몬스터 출현! ⚡"); // 확인용 로그
+                }
+
+                // 매니저에 등록
+                RegisterEnemy(mc);
+            }
         }
     }
 
@@ -186,7 +206,6 @@ public class SurvivalGameManager : MonoBehaviour
         aliveEnemies.Clear();
     }
 
-    // ⭐ [핵심] 보상 적용 로직
     public void ApplyReward(RewardUI.RewardType type)
     {
         if (player != null)
@@ -194,28 +213,23 @@ public class SurvivalGameManager : MonoBehaviour
             switch (type)
             {
                 case RewardUI.RewardType.Heal:
-                    player.Heal(3); // 체력 3 회복
+                    player.Heal(3);
                     Debug.Log("보상: 체력 회복");
                     break;
 
                 case RewardUI.RewardType.MoveSpeedUp:
-                    // 현재 코드상 '플레이어 이동속도'를 올립니다. 
-                    // (공 속도 업그레이드는 PlayerController 수정이 필요하여, 일단 플레이어 속도로 연결했습니다)
                     player.moveSpeed += 1.0f;
                     Debug.Log("보상: 이동 속도 증가");
                     break;
 
                 case RewardUI.RewardType.BallDamageUp:
-                    player.ballDamageBonus += 1; // 공 데미지 보너스 증가
+                    player.ballDamageBonus += 1;
                     Debug.Log("보상: 공 데미지 증가");
                     break;
             }
         }
 
-        // 보상 패널 끄기
         if (rewardPanel) rewardPanel.SetActive(false);
-
-        // 다음 웨이브 시작 (타이머 리셋, 몬스터 스폰 재개)
         StartPlayingPhase();
     }
 }

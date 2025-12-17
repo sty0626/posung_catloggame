@@ -9,29 +9,37 @@ public class MonsterController : MonoBehaviour
     public int maxHP = 3;
     public float attackCooldown = 1f;
 
+    [Header("애니메이션 & 이펙트")]
+    public GameObject deathEffectPrefab;
+
+    // 내부 변수
     private int currentHP;
     private Transform player;
     private PlayerController playerController;
     private Rigidbody2D rb;
-
+    private Animator anim;
+    private Collider2D myCollider;
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
     private bool _dying = false;
     private Coroutine _flashCo;
     private float lastAttackTime = -999f;
-
-    // 넉백 중인지 체크
     private bool isKnockedBack = false;
 
-    // 매니저 등록/해제
+    // ★ [추가] 엘리트 몬스터 여부
+    public bool IsElite { get; private set; } = false;
+
     void OnEnable() { SurvivalGameManager.Instance?.RegisterEnemy(this); }
     void OnDisable() { SurvivalGameManager.Instance?.UnregisterEnemy(this); }
     void OnDestroy() { SurvivalGameManager.Instance?.UnregisterEnemy(this); }
 
     void Start()
     {
-        currentHP = maxHP;
+        // 체력 초기화 (MakeElite에서 변경될 수 있으므로 여기서 최종 확정)
+        // 만약 스포너에서 먼저 Init을 했다면 currentHP가 덮어씌워질 수 있으니 주의.
+        // 안전하게 currentHP가 0이면 maxHP로 설정.
+        if (currentHP <= 0) currentHP = maxHP;
 
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
@@ -42,16 +50,38 @@ public class MonsterController : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
+        myCollider = GetComponent<Collider2D>();
 
-        // 원래 색깔 기억하기
         if (spriteRenderer) originalColor = spriteRenderer.color;
+    }
+
+    // ★ [추가] 엘리트 몬스터로 만드는 함수 (스포너가 호출함)
+    // ★ [수정] 엘리트 몬스터로 만드는 함수
+    public void MakeElite()
+    {
+        IsElite = true;
+
+        // 1. 능력치 강화
+        // 기존: maxHP *= 2; 
+        // 수정: 1.3배로 변경 (소수점 계산 후 정수로 변환)
+        maxHP = (int)(maxHP * 1.3f);
+
+        currentHP = maxHP;     // 현재 체력도 꽉 채우기
+        moveSpeed *= 2.3f;     // 속도 1.5배 (더 빠르게 하고 싶으면 2.0f 등으로 변경)
+
+        // 2. 외형 변경 (노란색 + 덩치 키우기)
+        if (GetComponent<SpriteRenderer>())
+        {
+            GetComponent<SpriteRenderer>().color = new Color(1f, 0.8f, 0.2f); // 금색
+            originalColor = new Color(1f, 0.8f, 0.2f);
+        }
+        transform.localScale *= 1.2f; // 덩치 20% 증가
     }
 
     void Update()
     {
         if (_dying || player == null) return;
-
-        // 넉백 중이면 이동 로직 건너뜀 (밀려나는 힘에 맡김)
         if (isKnockedBack) return;
 
         MoveTowardPlayer();
@@ -64,6 +94,9 @@ public class MonsterController : MonoBehaviour
     {
         Vector2 dir = (player.position - transform.position).normalized;
         rb.MovePosition(rb.position + dir * moveSpeed * Time.deltaTime);
+
+        if (dir.x < 0) transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, 1);
+        else transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, 1);
     }
 
     void AttackPlayer()
@@ -81,7 +114,8 @@ public class MonsterController : MonoBehaviour
 
         currentHP -= amount;
 
-        // ⭐ 피격 시 빨갛게 깜빡이기
+        if (anim != null) anim.SetTrigger("doHit");
+
         if (spriteRenderer != null)
         {
             if (_flashCo != null) StopCoroutine(_flashCo);
@@ -91,35 +125,29 @@ public class MonsterController : MonoBehaviour
         if (currentHP <= 0) Die();
     }
 
-    // 넉백 함수
     public void ApplyKnockback(Vector2 direction, float force)
     {
         if (_dying) return;
+        // 엘리트 몬스터는 넉백 저항을 조금 줄 수도 있음 (선택사항)
+        if (IsElite) force *= 0.5f;
         StartCoroutine(KnockbackRoutine(direction, force));
     }
 
     IEnumerator KnockbackRoutine(Vector2 direction, float force)
     {
         isKnockedBack = true;
-
-        // 순간적으로 밀어내기
         rb.AddForce(direction * force, ForceMode2D.Impulse);
-
-        yield return new WaitForSeconds(0.2f); // 0.2초 동안 밀림
-
-        // 멈추고 다시 추적 시작
+        yield return new WaitForSeconds(0.2f);
         rb.linearVelocity = Vector2.zero;
         isKnockedBack = false;
     }
 
-    // 빨간색 점멸 코루틴
     IEnumerator FlashRed()
     {
         if (spriteRenderer == null) yield break;
-
-        spriteRenderer.color = Color.red; // 빨간색!
+        spriteRenderer.color = Color.red;
         yield return new WaitForSeconds(0.1f);
-        spriteRenderer.color = originalColor; // 원상복구
+        spriteRenderer.color = originalColor; // 원래 색(엘리트면 금색)으로 복귀
     }
 
     void Die()
@@ -129,6 +157,14 @@ public class MonsterController : MonoBehaviour
 
         SurvivalGameManager.Instance?.UnregisterEnemy(this);
         if (_flashCo != null) StopCoroutine(_flashCo);
-        Destroy(gameObject);
+
+        if (anim != null) anim.SetTrigger("doDie");
+        if (myCollider != null) myCollider.enabled = false;
+
+        if (deathEffectPrefab != null)
+        {
+            Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+        }
+        Destroy(gameObject, 1f);
     }
 }

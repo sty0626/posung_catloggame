@@ -7,25 +7,28 @@ public class EnemySpawner : MonoBehaviour
     public GameObject[] enemyPrefabs;
 
     [Header("Spawn Bounds (Arena)")]
-    public Vector2 center = Vector2.zero;           // 아레나 중심(월드)
-    public Vector2 size = new Vector2(30f, 18f);    // 아레나 크기(가로x세로)
-    public float edgePadding = 1.5f;                // 벽에서 살짝 안쪽으로
+    public Vector2 center = Vector2.zero;
+    public Vector2 size = new Vector2(30f, 18f);
+    public float edgePadding = 1.5f;
 
     [Header("Spawn Control")]
-    public float baseInterval = 2.5f;               // 기본 스폰 간격(↑ 느려짐)
-    public float minInterval = 1.0f;                // 최소 간격
+    public float baseInterval = 2.5f;
+    public float minInterval = 1.0f;
     public AnimationCurve difficultyCurve = new AnimationCurve(
         new Keyframe(0f, 0f),
         new Keyframe(0.5f, 0.45f),
         new Keyframe(1f, 1f)
     );
-    public int baseBatch = 1;                       // 한 번에 스폰 수(기본)
-    public int maxBatch = 2;                        // 한 번에 스폰 수(최대)
+    public int baseBatch = 1;
+    public int maxBatch = 2;
+
+    [Header("Elite Settings")]
+    [Range(0f, 1f)]
+    public float eliteSpawnChance = 0.2f; // ★ 20% 확률로 엘리트 등장
 
     [Header("Limits")]
-    [Tooltip("동시에 존재 가능한 최대 적 수. 0 이하이면 제한 없음.")]
-    public int maxAlive = 20;                       // 테스트 중이면 0으로 꺼도 됨
-    public float initialDelay = 0f;                 // 웨이브 시작 후 첫 스폰 딜레이
+    public int maxAlive = 20;
+    public float initialDelay = 0f;
 
     private bool spawning;
     private Coroutine spawnRoutine;
@@ -56,14 +59,12 @@ public class EnemySpawner : MonoBehaviour
         {
             var gm = SurvivalGameManager.Instance;
 
-            // 웨이브 진행 중일 때만 스폰
             if (gm == null || gm.CurrentPhase != SurvivalGameManager.Phase.Playing)
             {
                 yield return null;
                 continue;
             }
 
-            // 동시 마리 제한 (0 이하이면 제한 꺼짐)
             if (maxAlive > 0 && gm.AliveCount >= maxAlive)
             {
                 yield return new WaitForSeconds(0.5f);
@@ -71,14 +72,12 @@ public class EnemySpawner : MonoBehaviour
                 continue;
             }
 
-            // 난이도 비율 (0~1)
             float phaseRatio = (gm.survivalDuration > 0f) ? Mathf.Clamp01(t / gm.survivalDuration) : 0f;
             float d = difficultyCurve.Evaluate(phaseRatio);
 
             float interval = Mathf.Lerp(baseInterval, minInterval, d);
             int batch = Mathf.RoundToInt(Mathf.Lerp(baseBatch, maxBatch, d));
 
-            // 스폰 직전에도 다시 페이즈/슬롯 체크
             if (gm.CurrentPhase == SurvivalGameManager.Phase.Playing)
             {
                 int canSpawn = (maxAlive > 0) ? Mathf.Max(0, maxAlive - gm.AliveCount) : batch;
@@ -102,9 +101,18 @@ public class EnemySpawner : MonoBehaviour
             Vector2 pos = GetRandomPointInArena();
             var go = Instantiate(prefab, pos, Quaternion.identity);
 
+            // ★ [수정] 몬스터 생성 후 엘리트 여부 결정
             var mc = go.GetComponent<MonsterController>();
             if (mc != null)
+            {
+                // 주사위 굴리기 (0.0 ~ 1.0 사이 랜덤 값 < 확률)
+                if (Random.value < eliteSpawnChance)
+                {
+                    mc.MakeElite(); // 당첨! 엘리트로 변신
+                }
+
                 SurvivalGameManager.Instance?.RegisterEnemy(mc);
+            }
         }
     }
 
